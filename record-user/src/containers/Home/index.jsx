@@ -1,36 +1,46 @@
+import { useEffect, useState, useRef } from 'react'
 import './styles.css'
 import Trash from '../../assets/trash.svg'
+import api from '../../services/api'
 
 function Home() {
-    // Dados para teste ::: 
-    const users = [
-        {
-            id: 0.5031356645271292,
-            name: 'Thiago Ferreira',
-            age: 29,
-            email: 'Thiago@gmail.com'
-        },
-        {
-            id: 0.8294731192217013,
-            name: 'Diego Bernardo',
-            age: 34,
-            email: 'diego@gmail.com'
-        },
-        {
-            id: 0.725270324941552,
-            name: 'Matheus Carvalho',
-            age: 27,
-            email: 'matheus@gmail.com' 
-        }
-    ]
+
+    const [users, setUsers] = useState([])
+    const inputName = useRef()
+    const inputAge = useRef()
+    const inputEmail = useRef()
+
+    async function getUsers() {
+        const usersFromAPI = await api.get('/users')
+        setUsers(usersFromAPI.data)
+    }
+
+    async function createUser() {
+        await api.post('create-user', {
+            name: inputName.current.value,
+            age: inputAge.current.value,
+            email: inputEmail.current.value
+        })
+        getUsers()
+    }
+
+    async function deleteUser(id) {
+        await api.delete(`/delete-user/${id}`)
+        getUsers()
+    }
+
+    useEffect( () => {
+        getUsers()
+    }, [])
+
     return (
         <div className="container">
             <form action="">
                 <h1>Record Users</h1>
-                <input name="name" type="text" placeholder="Name"/>
-                <input name="age" type="number" placeholder="Age"/>
-                <input name="email" type="email" placeholder="E-mail"/>
-                <button type="button">Register</button>
+                <input name="name" type="text" ref={inputName} placeholder="Name"/>
+                <input name="age" type="number" ref={inputAge} placeholder="Age"/>
+                <input name="email" type="email" ref={inputEmail} placeholder="E-mail"/>
+                <button type="button" onClick={createUser}>Register</button>
             </form>
 
             { users.map(user => (
@@ -40,7 +50,7 @@ function Home() {
                         <p>Age: <span>{user.age}</span></p>
                         <p>E-mail: <span>{user.email}</span></p>
                     </div>
-                    <button>
+                    <button onClick={() => deleteUser(user.id)}>
                         <img src={ Trash } />
                     </button>
                 </div>
